@@ -418,16 +418,24 @@ void FenetreTP::initialiser()
     };  // (0,+1,0), ... (0,0,-1), ... (+1,0,0), etc.
 
     // partie 2: définir les coordonnées de texture
-    // const GLfloat             // les différentes parties du monde  (voir figure 15)
-    // MOx1=0.0,   MOy1=0.0,  MOx2=3.0,  MOy2=3.0,    // le Monde
-    // ASx1=0.2,   ASy1=0.2,  ASx2=0.45, ASy2=0.6,    // l'Amérique du Sud
-    // AMx1=0.45,  AMy1=0.3,  AMx2=0.65, AMy2=0.7,    // l'Afrique + Moyen-Orient
-    // QCx1=0.275, QCy1=0.75, QCx2=0.35, QCy2=0.85,   // le Québec
-    // EUx1=0.45,  EUy1=0.7,  EUx2=0.55, EUy2=0.825,  // l'Europe (avec l'Angleterre ;))
-    // AUx1=0.8,   AUy1=0.25, AUx2=0.95, AUy2=0.45;   // l'Australie
+    const GLfloat             // les différentes parties du monde  (voir figure 15)
+    MOx1=0.0,   MOy1=0.0,  MOx2=3.0,  MOy2=3.0,    // le Monde
+    ASx1=0.2,   ASy1=0.2,  ASx2=0.45, ASy2=0.6,    // l'Amérique du Sud
+    AMx1=0.45,  AMy1=0.3,  AMx2=0.65, AMy2=0.7,    // l'Afrique + Moyen-Orient
+    QCx1=0.275, QCy1=0.75, QCx2=0.35, QCy2=0.85,   // le Québec
+    EUx1=0.45,  EUy1=0.7,  EUx2=0.55, EUy2=0.825,  // l'Europe (avec l'Angleterre ;))
+    AUx1=0.8,   AUy1=0.25, AUx2=0.95, AUy2=0.45;   // l'Australie
 
-    // GLfloat texcoordsTerre[2*4*6] = { ... };  // les coordonnées de texture pour la Terre (voir figure 15)
-    // GLfloat texcoordsAutre[2*4*6] = { ... };  // (0,0), (+1,0), etc.
+    GLfloat texcoordsTerre[2*4*6] = { MOx1, MOy1, MOx2, MOy2,
+                                      ASx1, ASy1, ASx2, ASy2,
+                                      AMx1, AMy1 ,AMx2, AMy2,
+                                      QCx1, QCy1, QCx2, QCy2,
+                                      EUx1, EUy1, EUx2, EUy2,
+                                      AUx1, AUy1, AUx2, AUy2};  // les coordonnées de texture pour la Terre (voir figure 15)
+    GLfloat texcoordsAutre[2*4*6] = { (0.0,0.0), (0.0,1.0), (1.0,0.0), (1.0,1.0),
+                                      (0.0,0.0), (0.0,1.0), (1.0,0.0), (1.0,1.0),
+                                      (0.0,0.0), (0.0,1.0), (1.0,0.0), (1.0,1.0),
+                                      (0.0,0.0), (0.0,1.0), (1.0,0.0), (1.0,1.0) };  // (0,0), (+1,0), etc.
 
     // allouer les objets OpenGL
     glGenVertexArrays( 2, vao );
@@ -446,7 +454,19 @@ void FenetreTP::initialiser()
     glVertexAttribPointer(locNormal, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(locNormal);
     // partie 2: charger les deux VBO pour les coordonnées de texture: celle pour la Terre sur le cube et pour les autres textures
-    // ...
+
+    // Pour la Terre
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(texcoordsTerre), texcoordsTerre, GL_STATIC_DRAW);
+    glVertexAttribPointer(locTexCoord, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(locTexCoord);
+
+    // Pour les autres textures
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(texcoordsAutre), texcoordsAutre, GL_STATIC_DRAW);
+    glVertexAttribPointer(locTexCoord, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(locTexCoord);
+
 
     glBindVertexArray(0);
 
@@ -491,16 +511,16 @@ void FenetreTP::conclure()
 void afficherModele()
 {
     // partie 2: paramètres de texture
-    //glActiveTexture( GL_TEXTURE0 ); // l'unité de texture 0
-    //if ( varsUnif.iTexCoul )
-    //    glBindTexture( GL_TEXTURE_2D, texturesCoul[varsUnif.iTexCoul-1] );
-    //else
-    //    glBindTexture( GL_TEXTURE_2D, 0 );
-    //glActiveTexture( GL_TEXTURE1 ); // l'unité de texture 1
-    //if ( varsUnif.iTexNorm )
-    //    glBindTexture( GL_TEXTURE_2D, texturesNorm[varsUnif.iTexNorm-1] );
-    //else
-    //    glBindTexture( GL_TEXTURE_2D, 0 );
+    glActiveTexture( GL_TEXTURE0 ); // l'unité de texture 0
+    if ( varsUnif.iTexCoul )
+        glBindTexture( GL_TEXTURE_2D, texturesCoul[varsUnif.iTexCoul-1] );
+    else
+        glBindTexture( GL_TEXTURE_2D, 0 );
+    glActiveTexture( GL_TEXTURE1 ); // l'unité de texture 1
+    if ( varsUnif.iTexNorm )
+        glBindTexture( GL_TEXTURE_2D, texturesNorm[varsUnif.iTexNorm-1] );
+    else
+        glBindTexture( GL_TEXTURE_2D, 0 );
 
     // Dessiner le modèle
     matrModel.PushMatrix(); {

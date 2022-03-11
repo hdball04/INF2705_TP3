@@ -50,7 +50,6 @@ uniform mat4 matrModel;
 uniform mat4 matrVisu;
 uniform mat4 matrProj;
 uniform mat3 matrNormale;
-
 /////////////////////////////////////////////////////////////////
 
 layout(location=0) in vec4 Vertex;
@@ -61,6 +60,7 @@ out Attribs {
     vec4 couleur;
     vec3 lumiDir[3], spotDir[3];
     vec3 normale[3], obsVec[3];
+    vec2 texCoord;
 } AttribsOut;
 
 float calculerSpot( in vec3 D, in vec3 L, in vec3 N )
@@ -105,6 +105,9 @@ void main( void )
     vec4 coul = FrontMaterial.emission + FrontMaterial.ambient * LightModel.ambient;
 
     for (int j = 0; j < 3; j++){
+
+
+        AttribsOut.texCoord = TexCoord.st;
 
         // calculer la normale (N)
         AttribsOut.normale[j] = matrNormale * Normal;
