@@ -66,6 +66,19 @@ out Attribs {
 float calculerSpot( in vec3 D, in vec3 L, in vec3 N )
 {
     float spotFacteur = 0.0;
+    if ( dot( D, N ) >= 0 )
+    {
+        float spotDot = dot( L, D );
+
+        if (utiliseDirect) {
+            float cosOuter = cos(radians(LightSource.spotAngleOuverture));
+            float cosInner = pow(cos(radians(LightSource.spotAngleOuverture)), 1.01+(LightSource.spotExponent/2.0));
+            spotFacteur = smoothstep(cosInner, cosOuter,  spotDot);
+        } else {
+            if ( spotDot > cos(radians(LightSource.spotAngleOuverture)) ) spotFacteur = pow( spotDot, LightSource.spotExponent );
+  
+        }
+    }
     return( spotFacteur );
 }
 
@@ -102,12 +115,12 @@ void main( void )
     vec3 pos = ( matrVisu * matrModel * Vertex ).xyz;
 
     // calcul de la composante ambiante du modèle
-    vec4 coul = FrontMaterial.emission + FrontMaterial.ambient * LightModel.ambient;
+    vec4 coul = vec4(0.0,0.0,0.0,1.0);
 
     for (int j = 0; j < 3; j++){
 
-
-        AttribsOut.texCoord = TexCoord.st;
+        
+        AttribsOut.texCoord = TexCoord.st + vec2(-1.0,0.0) * tempsGlissement;
 
         // calculer la normale (N)
         AttribsOut.normale[j] = matrNormale * Normal;
@@ -129,7 +142,12 @@ void main( void )
         vec3 O = normalize( obsVec );  // position de l'observateur
 
         coul += FrontMaterial.ambient * LightSource.ambient[j];
-        coul += calculerReflexion( j, L, N, O );
+
+        //Gouraud
+        if (typeIllumination == 0) {
+            coul += calculerReflexion( j, L, N, O );
+        }
+
     }
 
     // couleur du sommet

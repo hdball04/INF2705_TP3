@@ -66,8 +66,15 @@ float calculerSpot( in vec3 D, in vec3 L, in vec3 N )
     if ( dot( D, N ) >= 0 )
     {
         float spotDot = dot( L, D );
-        //spotFacteur = ( spotDot > cos(radians(LightSource.spotAngleOuverture)) ) ? pow( spotDot, LightSource.spotExponent ) : 0.0;
-        if ( spotDot > cos(radians(LightSource.spotAngleOuverture)) ) spotFacteur = pow( spotDot, LightSource.spotExponent );
+
+        if (utiliseDirect) {
+            float cosOuter = cos(radians(LightSource.spotAngleOuverture));
+            float cosInner = pow(cos(radians(LightSource.spotAngleOuverture)), 1.01+(LightSource.spotExponent/2.0));
+            spotFacteur = smoothstep(cosInner, cosOuter,  spotDot);
+        } else {
+            if ( spotDot > cos(radians(LightSource.spotAngleOuverture)) ) spotFacteur = pow( spotDot, LightSource.spotExponent );
+  
+        }
     }
     return( spotFacteur );
 }
@@ -96,26 +103,45 @@ vec4 calculerReflexion( in int j, in vec3 L, in vec3 N, in vec3 O ) // pour la l
 
 void main( void )
 {
-    vec4 couleurTex = texture( laTextureCoul, AttribsIn.texCoord );
-    vec4 coul = AttribsIn.couleur;  // la composante ambiante déjà calculée (dans nuanceur de sommets)
+   
+   vec4 coul = AttribsIn.couleur;  // la composante ambiante déjà calculée (dans nuanceur de sommets)
+   vec3 N = vec3(0.0,0.0,0.0);
 
-    vec3 N = normalize( gl_FrontFacing ? AttribsIn.normale[0] : -AttribsIn.normale[0] );
+
+   //Phong
+   if (typeIllumination == 1) {
+  
+        N = normalize( gl_FrontFacing ? AttribsIn.normale[0] : -AttribsIn.normale[0] );
 
    
-    for (int j = 0; j < 3; j++){
-        vec3 L = normalize( AttribsIn.lumiDir[j] ); // vecteur vers la source lumineuse
-        vec3 O = normalize( AttribsIn.obsVec[j] );  // position de l'observateur
-        vec3 D = normalize( AttribsIn.spotDir[j] ); // direction du spot
+        for (int j = 0; j < 3; j++){
+            vec3 L = normalize( AttribsIn.lumiDir[j] ); // vecteur vers la source lumineuse
+            vec3 O = normalize( AttribsIn.obsVec[j] );  // position de l'observateur
+            vec3 D = normalize( AttribsIn.spotDir[j] ); // direction du spot
 
-        // calculer la distance de la surface à la source lumineuse
-        float d = length( L );
-        // calculer l'atténuation selon la distance à l'objet
-        attenuation = min ( 1.0, 1.0 / ( LightSource.constantAttenuation +
-                                         LightSource.linearAttenuation * d +
-                                         LightSource.quadraticAttenuation * d * d ) );
+            // calculer la distance de la surface à la source lumineuse
+            float d = length( L );
+            // calculer l'atténuation selon la distance à l'objet
+            attenuation = min ( 1.0, 1.0 / ( LightSource.constantAttenuation +
+                                             LightSource.linearAttenuation * d +
+                                             LightSource.quadraticAttenuation * d * d ) );
 
-        // calculer la réflexion
-        coul += calculerReflexion(j, L, N, O ) * calculerSpot( D, L, N);
+            // calculer la réflexion
+            coul += calculerReflexion(j, L, N, O ) * calculerSpot( D, L, N);
+        }
+   }
+
+    
+
+    vec4 couleurTex = texture( laTextureCoul, AttribsIn.texCoord );
+    if (iTexCoul>0){
+        if (length(couleurTex.rgb) < 0.5) {
+            discard;
+        }
+    }
+
+    if (iTexCoul > 0) {
+        coul *= couleurTex;
     }
 
     //afficher la couleur finale du fragment

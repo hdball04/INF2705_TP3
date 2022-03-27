@@ -1,7 +1,7 @@
 // Prénoms, noms et matricule des membres de l'équipe:
-// - Prénom1 NOM1 (matricule1)
-// - Prénom2 NOM2 (matricule2)
-#pragma message (": *************** Identifiez les membres de l'équipe dans le fichier 'main.cpp' et commentez cette ligne. ***************")
+// - Hannan DISSOU (2083768)
+// - Mohamed BEN AHMED DAHO (2161326)
+//#pragma message (": *************** Identifiez les membres de l'équipe dans le fichier 'main.cpp' et commentez cette ligne. ***************")
 
 #if defined(_WIN32) || defined(WIN32)
 #pragma warning ( disable : 4244 4305 )
@@ -426,16 +426,31 @@ void FenetreTP::initialiser()
     EUx1=0.45,  EUy1=0.7,  EUx2=0.55, EUy2=0.825,  // l'Europe (avec l'Angleterre ;))
     AUx1=0.8,   AUy1=0.25, AUx2=0.95, AUy2=0.45;   // l'Australie
 
-    GLfloat texcoordsTerre[2*4*6] = { MOx1, MOy1, MOx2, MOy2,
-                                      ASx1, ASy1, ASx2, ASy2,
-                                      AMx1, AMy1 ,AMx2, AMy2,
-                                      QCx1, QCy1, QCx2, QCy2,
-                                      EUx1, EUy1, EUx2, EUy2,
-                                      AUx1, AUy1, AUx2, AUy2};  // les coordonnées de texture pour la Terre (voir figure 15)
-    GLfloat texcoordsAutre[2*4*6] = { (0.0,0.0), (0.0,1.0), (1.0,0.0), (1.0,1.0),
-                                      (0.0,0.0), (0.0,1.0), (1.0,0.0), (1.0,1.0),
-                                      (0.0,0.0), (0.0,1.0), (1.0,0.0), (1.0,1.0),
-                                      (0.0,0.0), (0.0,1.0), (1.0,0.0), (1.0,1.0) };  // (0,0), (+1,0), etc.
+    GLfloat texcoordsTerre[2*4*6] = { MOx1, MOy1, MOx1, MOy2,
+                                      MOx2, MOy1, MOx2, MOy2,
+
+                                      ASx1, ASy1, ASx1, ASy2,
+                                      ASx2, ASy1, ASx2, ASy2,
+
+                                      AMx1, AMy1 ,AMx1, AMy2,
+                                      AMx2, AMy1 ,AMx2, AMy2,
+
+                                      QCx1, QCy1, QCx1, QCy2,
+                                      QCx2, QCy1, QCx2, QCy2,
+  
+                                      EUx1, EUy1, EUx1, EUy2,
+                                      EUx2, EUy1, EUx2, EUy2,
+
+                                      AUx1, AUy1, AUx1, AUy2,
+                                      AUx2, AUy1, AUx2, AUy2 };  // les coordonnées de texture pour la Terre (voir figure 15)
+    
+    const GLfloat x1 = 0.0, y1 = 0.0, x2 = 1.0, y2 = 1.0;
+    GLfloat texcoordsAutre[2 * 4 * 6] = { x1,y1,x1,y2,x2,y1,x2,y2,
+                                          x1,y1,x1,y2,x2,y1,x2,y2,
+                                          x1,y1,x1,y2,x2,y1,x2,y2,
+                                          x1,y1,x1,y2,x2,y1,x2,y2,
+                                          x1,y1,x1,y2,x2,y1,x2,y2,
+                                          x1,y1,x1,y2,x2,y1,x2,y2 };  // (0,0), (+1,0), etc.
 
     // allouer les objets OpenGL
     glGenVertexArrays( 2, vao );
@@ -522,6 +537,22 @@ void afficherModele()
     else
         glBindTexture( GL_TEXTURE_2D, 0 );
 
+    glBindVertexArray(vao[0]);
+
+    if (varsUnif.iTexCoul == 1) {
+        
+        glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
+        glVertexAttribPointer(locTexCoord, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        
+    }
+    if (varsUnif.iTexCoul > 1) {
+        glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
+        glVertexAttribPointer(locTexCoord, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    }
+
+
+
+
     // Dessiner le modèle
     matrModel.PushMatrix(); {
 
@@ -535,6 +566,8 @@ void afficherModele()
         case 1:
             // afficher le cube
             glUniformMatrix4fv( locmatrModel, 1, GL_FALSE, matrModel );
+
+
             // (partie 1: ne pas oublier de calculer et donner une matrice pour les transformations des normales)
             glm::mat3 matrVM = glm::mat3(matrVisu.getMatr() * matrModel.getMatr());
             glm::mat3 matrNormale = glm::inverse(matrVM);
@@ -587,7 +620,7 @@ void afficherLumieres()
     for ( int i = 0 ; i < 3 ; ++i )
     {
         glVertexAttrib3f( locColorBase, 2*LightSource.diffuse[i].r, 2*LightSource.diffuse[i].g, 2*LightSource.diffuse[i].b ); // couleur
-#if 0
+#if 1
         // dessiner une ligne vers le spot
         GLfloat coords[] =
         {
